@@ -31,14 +31,11 @@ module animationLogic(
     input player2Up,
     input player2Down,
     input stopBall,
-    output [2:0] rgb,
-    output scorePlayer1,
-    output scorePlayer2
+    output wire [2:0] rgb,
+    output wire scorePlayer1,
+    output wire scorePlayer2
 );
 
-    reg [2:0] rgb;
-    reg scorePlayer1;
-    reg scorePlayer2;
     reg scoreCheckerPlayer1;
     reg scoreCheckerPlayer2;
     reg scorer; 
@@ -58,14 +55,14 @@ module animationLogic(
     // Player 1
     integer leftPaddleY; // the distance between paddle and top side of screen
     integer leftPaddleNextY; // the distance between paddle and top side of screen
-    parameter leftPaddleX = 20 // the distance between bar and left side of screen
+    parameter leftPaddleX = 20; // the distance between bar and left side of screen
     wire displayLeftPaddle; // to display player 1's paddle in vga
     wire[2:0] rgbLeftPaddle; // player 1's paddle color
 
     // Player 2
     integer rightPaddleY; // the distance between paddle and top side of screen
     integer rightPaddleNextY; // the distance between paddle and top side of screen
-    parameter rightPaddleX = 610 // the distance between bar and left side of screen
+    parameter rightPaddleX = 610; // the distance between bar and left side of screen
     wire displayRightPaddle; // to display player 2's paddle in vga
     wire[2:0] rgbRightPaddle; // player 2's paddle color
 
@@ -82,8 +79,8 @@ module animationLogic(
     wire[2:0] rgbBall; // ball color
 
     // Refresh the display
-    integer refreshReg;
-    integer refreshNext;
+    reg [19:0] refreshReg;
+    wire [19:0] refreshNext;
     parameter refreshConstant = 830000;
     wire refreshRate;
 
@@ -127,8 +124,8 @@ module animationLogic(
             // to reset the game
             ballX <= ballDefaultX;
             ballY <= ballDefaultY;
-            leftPaddleX <= 260;
-            rightPaddleX <= 260;
+            leftPaddleY <= 260;
+            rightPaddleY <= 260;
             velocityXReg <= 0;
             velocityYReg <= 0;
         end
@@ -250,8 +247,8 @@ module animationLogic(
                 // if player 1 scores, ball passes through the horizontal location of right paddle.
                 
                 //reset the ball's location to its default
-                ballNextX = ballDefaultX
-                ballNextY = ballDefaultY
+                ballNextX = ballDefaultX;
+                ballNextY = ballDefaultY;
 
                 // stop the ball
                 velocityXNext <= 0;
@@ -269,8 +266,8 @@ module animationLogic(
                 // if player 2 scores, ball passes through the horizontal location of left paddle.
                 
                 //reset the ball's location to its default
-                ballNextX = ballDefaultX
-                ballNextY = ballDefaultY
+                ballNextX = ballDefaultX;
+                ballNextY = ballDefaultY;
 
                 // stop the ball
                 velocityXNext <= 0;
@@ -292,7 +289,7 @@ module animationLogic(
 
     // display right paddle object on the screen
     assign displayRightPaddle = y < rightPaddleY & y > rightPaddleY - paddleHeight & x > rightPaddleX & x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbLeftPaddle = 3'b001; // color of left paddle: red
+    assign rgbRightPaddle = 3'b001; // color of left paddle: red
 
     // display ball object on the screen
     assign displayBall = (x - ballX) * (x - ballX) + (y - ballY) * (y - ballY) <= ballRadius * ballRadius ? 1'b1 : 1'b0; 
@@ -307,11 +304,11 @@ module animationLogic(
 
     // assign rgbNext from outputMux.
     assign rgbNext = outputMux === 4'b1000 ? 3'b000: 
-                    output_mux === 4'b1100 ? rgbLeftPaddle: 
-                    output_mux === 4'b1101 ? rgbLeftPaddle: 
-                    output_mux === 4'b1010 ? rgbRightPaddle: 
-                    output_mux === 4'b1011 ? rgbRightPaddle: 
-                    output_mux === 4'b1001 ? rgbBall:
+                    outputMux === 4'b1100 ? rgbLeftPaddle: 
+                    outputMux === 4'b1101 ? rgbLeftPaddle: 
+                    outputMux === 4'b1010 ? rgbRightPaddle: 
+                    outputMux === 4'b1011 ? rgbRightPaddle: 
+                    outputMux === 4'b1001 ? rgbBall:
                     3'b000;
  
     // output part
