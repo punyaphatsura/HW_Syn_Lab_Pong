@@ -30,7 +30,7 @@ module animationLogic(
     input player1Down,
     input player2Up,
     input player2Down,
-    input stopBall,
+    input throwBall,
     input [7:0] totalscorePlayer1,
     input [7:0] totalscorePlayer2,
     output wire [2:0] rgb,
@@ -147,7 +147,7 @@ module animationLogic(
             velocityXReg <= velocityXNext; // assigns horizontal velocity
             velocityYReg <= velocityYNext; // assigns vertical velocity
 
-            if (stopBall === 1'b1) begin
+            if (throwBall === 1'b1) begin
                 // throw the ball
 
                 if (scorer === 1'b0) begin
