@@ -56,7 +56,7 @@ module uart(
              endcase
             case (data_in)
                 8'h38: movement[1:0] = 2'b10; // 8 2nd player up
-                8'h35: movement[0] = 2'b01; // 5 2nd player down
+                8'h35: movement[1:0] = 2'b01; // 5 2nd player down
             endcase
         end
     end
