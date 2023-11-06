@@ -116,11 +116,11 @@ module animationLogic(
         ballY = 300;
         ballNextY = 300;
 
-        leftPaddleY = 260;
-        leftPaddleNextY = 260;
+        leftPaddleY = 380;
+        leftPaddleNextY = 380;
 
-        rightPaddleY = 260;
-        rightPaddleNextY = 260;
+        rightPaddleY = 380;
+        rightPaddleNextY = 380;
     end
 
     // Refreshing
@@ -138,8 +138,8 @@ module animationLogic(
             // to reset the game
             ballX <= ballDefaultX;
             ballY <= ballDefaultY;
-            leftPaddleY <= 260;
-            rightPaddleY <= 260;
+            leftPaddleY <= 380;
+            rightPaddleY <= 380;
             velocityXReg <= 0;
             velocityYReg <= 0;
         end
@@ -233,12 +233,12 @@ module animationLogic(
         if (refreshRate === 1'b1) begin
             // every refreshRate's posedge
 
-            if (ballY <= leftPaddleY & ballY >= leftPaddleY - paddleHeight & ballX <= leftPaddleX + paddleWidth + 30 & ballX > leftPaddleX + ballRadius) begin
+            if (ballY <= leftPaddleY & ballY >= leftPaddleY - paddleHeight & ballX <= leftPaddleX + paddleWidth + ballRadius & ballX > leftPaddleX + ballRadius) begin
                 // if ball hits the left paddle
                 velocityXNext <= velocityX; // set the direction of horizontal velocity positive
             end
 
-            if (ballY <= rightPaddleY & ballY >= rightPaddleY - paddleHeight & ballX >= rightPaddleX - 30 & ballX < rightPaddleX + paddleWidth - ballRadius) begin
+            if (ballY <= rightPaddleY & ballY >= rightPaddleY - paddleHeight & ballX >= rightPaddleX - ballRadius & ballX < rightPaddleX + paddleWidth - ballRadius) begin
                 // if ball hits the right paddle
                 velocityXNext <= -velocityX; // set the direction of horizontal velocity negative
             end
@@ -248,7 +248,7 @@ module animationLogic(
                 velocityYNext <= velocityY; // set the direction of vertical velocity positive
             end
 
-            if (ballY > 400) begin
+            if (ballY > 471) begin
                 // if ball hits the top side of the screen
                 velocityYNext <= -velocityY; // set the direction of vertical velocity negative
             end
