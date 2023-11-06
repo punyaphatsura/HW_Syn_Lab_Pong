@@ -24,7 +24,7 @@ module main(
     input clk,
     input RsRx,
     input btnU,
-    input [15:0] sw,
+    input btnD,
     output RsTx,
     output [6:0] seg,
     output [3:0] an,
@@ -76,7 +76,7 @@ module main(
         player1Down,// input
         player2Up,// input
         player2Down,// input
-        sw[0], // stopBall // input
+        btnD, // stopBall // input
         player1Score,
         player2Score,
         rgb_out,
