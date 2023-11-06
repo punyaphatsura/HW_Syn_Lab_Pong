@@ -48,7 +48,6 @@ module animationLogic(
     parameter paddleWidth = 10; // width of the paddle
     parameter paddleHeight = 120; // height of the paddle
     parameter paddleVelocity = 10; // velocity of the paddle
-    parameter paddlePadding = 20; // padding of the paddle
     
     parameter ballDefaultX = 300; // default value of the distance between the ball and left side of the screen
     parameter ballDefaultY = 300; // default value of the distance between the ball and top side of the screen
@@ -66,7 +65,7 @@ module animationLogic(
     // Player 2
     integer rightPaddleY; // the distance between paddle and top side of screen
     integer rightPaddleNextY; // the distance between paddle and top side of screen
-    parameter rightPaddleX = 460 // the distance between bar and left side of screen
+    parameter rightPaddleX = 610 // the distance between bar and left side of screen
     wire displayRightPaddle; // to display player 2's paddle in vga
     wire[2:0] rgbRightPaddle; // player 2's paddle color
 
@@ -87,10 +86,6 @@ module animationLogic(
     integer refreshNext;
     parameter refreshConstant = 830000;
     wire refreshRate;
-
-    // x, y cursor position
-    wire[9:0] x;
-    wire[8:0] y;
 
     // Mux to display
     wire[3:0] outputMux;
@@ -128,7 +123,7 @@ module animationLogic(
 
     // Register part
     always @(posedge clk or posedge reset) begin
-        if (reset === 1'b 1) begin
+        if (reset === 1'b1) begin
             // to reset the game
             ballX <= ballDefaultX;
             ballY <= ballDefaultY;
@@ -141,19 +136,19 @@ module animationLogic(
             velocityXReg <= velocityXNext; // assigns horizontal velocity
             velocityYReg <= velocityYNext; // assigns vertical velocity
 
-            if (stopBall === 1'b 1) begin
+            if (stopBall === 1'b1) begin
                 // throw the ball
 
                 if (scorer === 1'b0) begin
                     // if scorer is player 2 throw the ball to player 1.
             
-                    velocityXReg <= 3;
-                    velocityYReg <= 3;
+                    velocityXReg <= -3;
+                    velocityYReg <= -3;
                 end
                 else begin
                     // if scorer is player 1 throw the ball to player 2.
-                    velocityXReg <= -3;
-                    velocityYReg <= -3;
+                    velocityXReg <= 3;
+                    velocityYReg <= 3;
                 end
             end
 
@@ -172,12 +167,12 @@ module animationLogic(
         if (refreshRate === 1'b1) begin
             // every refreshRate's posedge
 
-            if (player1Up === 1'b1 & leftPaddleY > paddleVelocity) begin 
+            if (player1Up === 1'b1 & leftPaddleY - paddleHeight > paddleVelocity) begin 
                 // up button is pressed and paddle can move to up, which mean paddle is not on the top side of the screen.
-                leftPaddleNextY <= leftPaddleY - paddleVelocity; // move paddle to the down   
+                leftPaddleNextY <= leftPaddleY - paddleVelocity; // move paddle to the up   
             end
 
-            else if (player1Down === 1'b1 & leftPaddleY < 639 - paddleVelocity - paddleHeight ) begin
+            else if (player1Down === 1'b1 & leftPaddleY < 479 - paddleVelocity) begin
                 // down button is pressed and paddle can move down, which mean paddle is not on the bottom side of the screen
                 leftPaddleNextY <= leftPaddleY + paddleVelocity;   // move paddle to the down.
             end
@@ -194,12 +189,12 @@ module animationLogic(
         if (refreshRate === 1'b1) begin
             // every refreshRate's posedge
 
-            if (player2Up === 1'b1 & rightPaddleY > paddleVelocity) begin 
+            if (player2Up === 1'b1 & rightPaddleY - paddleHeight > paddleVelocity) begin 
                 // up button is pressed and paddle can move to up, which mean paddle is not on the top side of the screen.
-                rightPaddleNextY <= rightPaddleY - paddleVelocity; // move paddle to the down   
+                rightPaddleNextY <= rightPaddleY - paddleVelocity; // move paddle to the up   
             end
 
-            else if (player2Down === 1'b1 & rightPaddleY < 639 - paddleVelocity - paddleHeight ) begin
+            else if (player2Down === 1'b1 & rightPaddleY < 479 - paddleVelocity) begin
                 // down button is pressed and paddle can move down, which mean paddle is not on the bottom side of the screen
                 rightPaddleNextY <= rightPaddleY + paddleVelocity;   // move paddle to the down.
             end
@@ -225,22 +220,22 @@ module animationLogic(
         if (refreshRate === 1'b1) begin
             // every refreshRate's posedge
 
-            if (ballY >= leftPaddleY & ballY <= leftPaddleY + 120 & ballX >= leftPaddleX - 3 & ballX <= leftPaddleX + 5) begin
+            if (ballY <= leftPaddleY & ballY >= leftPaddleY - paddleHeight & ballX === leftPaddleX + paddleWidth) begin
                 // if ball hits the left paddle
-                velocityXNext <= -velocityX; // set the direction of horizontal velocity negative
-            end
-
-            else if (ballY >= rightPaddleY & ballY <= rightPaddleY + 120 & ballX >= rightPaddleX + 2 & ballX <= rightPaddleX + 12) begin
-                // if ball hits the right paddle
                 velocityXNext <= velocityX; // set the direction of horizontal velocity positive
             end
 
-            else if (ballY < 0) begin
+            else if (ballY <= leftPaddleY & ballY >= leftPaddleY - paddleHeight & ballX === rightPaddleX) begin
+                // if ball hits the right paddle
+                velocityXNext <= -velocityX; // set the direction of horizontal velocity negative
+            end
+
+            else if (ballY < 1) begin
                 // if ball hits the top side of the screen
                 velocityYNext <= velocityY; // set the direction of vertical velocity positive
             end
 
-            else if (ballY > 620) begin
+            else if (ballY > 479) begin
                 // if ball hits the top side of the screen
                 velocityYNext <= -velocityY; // set the direction of vertical velocity negative
             end
@@ -251,7 +246,7 @@ module animationLogic(
             
             
             
-            if (ballX === 477) begin
+            if (ballX >= 632) begin
                 // if player 1 scores, ball passes through the horizontal location of right paddle.
                 
                 //reset the ball's location to its default
@@ -270,7 +265,7 @@ module animationLogic(
                 scoreCheckerPlayer1 <= 1'b0;   
             end
 
-            if (ballX === 3) begin
+            if (ballX <= 8) begin
                 // if player 2 scores, ball passes through the horizontal location of left paddle.
                 
                 //reset the ball's location to its default
@@ -282,26 +277,26 @@ module animationLogic(
                 velocityYNext <= 0;
 
                 // player 1 scored
-                scorerNext <= 1'b0;
+                scorerNext <= 1'b1;
                 scoreCheckerPlayer2 <= 1'b1;
             end
             else begin
-                scoreCheckerPlayer1 <= 1'b0;   
+                scoreCheckerPlayer2 <= 1'b0;   
             end
         end
     end
 
     // display left paddle object on the screen
-    assign displayLeftPaddle = y > leftPaddleY & y < leftPaddleY + paddleHeight & x > leftPaddleX & x < leftPaddleX + paddleWidth ? 1'b1 : 1'b0; 
+    assign displayLeftPaddle = y < leftPaddleY & y > leftPaddleY - paddleHeight & x > leftPaddleX & x < leftPaddleX + paddleWidth ? 1'b1 : 1'b0; 
     assign rgbLeftPaddle = 3'b100; // color of left paddle: blue
 
     // display right paddle object on the screen
-    assign displayRightPaddle = y > rightPaddleY & y < rightPaddleY + paddleHeight & x > rightPaddleX & x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
+    assign displayRightPaddle = y < rightPaddleY & y > rightPaddleY - paddleHeight & x > rightPaddleX & x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
     assign rgbLeftPaddle = 3'b001; // color of left paddle: red
 
     // display ball object on the screen
     assign displayBall = (x - ballX) * (x - ballX) + (y - ballY) * (y - ballY) <= ballRadius * ballRadius ? 1'b1 : 1'b0; 
-    assign rgbBall = 3'b 111; // color of ball: white
+    assign rgbBall = 3'b111; // color of ball: white
 
     always @(posedge clk) begin 
         rgbReg <= rgbNext;   
@@ -317,7 +312,8 @@ module animationLogic(
                     output_mux === 4'b1010 ? rgbRightPaddle: 
                     output_mux === 4'b1011 ? rgbRightPaddle: 
                     output_mux === 4'b1001 ? rgbBall:
-                    3'b000; 
+                    3'b000;
+ 
     // output part
     assign rgb = rgbReg; 
     assign scorePlayer1 = scoreCheckerPlayer1; 
