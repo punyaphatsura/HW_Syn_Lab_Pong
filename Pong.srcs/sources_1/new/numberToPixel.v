@@ -23,8 +23,8 @@ module numberToPixel(
   input [3:0] number,
   input [2:0] rowNum,
   input [2:0] colNum,
-  output wire pixel
-)
+  output reg pixel
+);
   reg [7:0] pixels;
 
   always @(*) begin
@@ -122,7 +122,7 @@ module numberToPixel(
       default: pixels = 8'b00000000;
     endcase
 
-    assign pixel = pixels[colNum]
+    pixel = pixels[7 - colNum];
   end
 
 endmodule

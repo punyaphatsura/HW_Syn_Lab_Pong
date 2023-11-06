@@ -77,6 +77,8 @@ module main(
         player2Up,// input
         player2Down,// input
         sw[0], // stopBall // input
+        player1Score,
+        player2Score,
         rgb_out,
         scorePlayer1,
         scorePlayer2
