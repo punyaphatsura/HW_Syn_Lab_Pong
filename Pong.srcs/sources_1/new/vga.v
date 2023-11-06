@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 12/10/2018 10:34:59 AM
+// Create Date: 10/17/2023 12:27:52 AM
 // Design Name: 
-// Module Name: vga
+// Module Name: vga_control
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,54 +20,92 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module vga (pixel_clk,HS,VS,hcounter,vcounter,blank);
-
-	input pixel_clk;	
-	output reg HS, VS;
-	output reg blank;	
-	output reg [10:0] hcounter, vcounter;	
-
-	parameter HMAX = 800; 	
-	parameter VMAX = 525; 	
-	parameter HLINES = 640;	
-	parameter HFP = 648; 	
-	parameter HSP = 744; 
-	parameter VLINES = 480;	
-	parameter VFP = 482; 	
-	parameter VSP = 484; 
-	parameter SPP = 0;	
-
-	wire video_enable;
+module vga(
+    input wire clk, reset,
+    output wire hsync, vsync, video_on, p_tick,
+    output wire [9:0] x, y
+    );
+    
+    // Constant for VGA parameters
+	localparam H_DISPLAY       = 640; // horizontal display area
+	localparam H_L_BORDER      =  48; // horizontal left border
+	localparam H_R_BORDER      =  16; // horizontal right border
+	localparam H_RETRACE       =  96; // horizontal retrace
+	localparam H_MAX           = H_DISPLAY + H_L_BORDER + H_R_BORDER + H_RETRACE - 1;
+	localparam START_H_RETRACE = H_DISPLAY + H_R_BORDER;
+	localparam END_H_RETRACE   = H_DISPLAY + H_R_BORDER + H_RETRACE - 1;
 	
-	always@(posedge pixel_clk)begin
-		blank <= ~video_enable; 
-	end
-
-	always@(posedge pixel_clk)begin
-		if(hcounter == HMAX) hcounter <= 0;
-		else hcounter <= hcounter + 1'b1;
-	end
+	localparam V_DISPLAY       = 480; // vertical display area
+	localparam V_T_BORDER      =  10; // vertical top border
+	localparam V_B_BORDER      =  33; // vertical bottom border
+	localparam V_RETRACE       =   2; // vertical retrace
+	localparam V_MAX           = V_DISPLAY + V_T_BORDER + V_B_BORDER + V_RETRACE - 1;
+    localparam START_V_RETRACE = V_DISPLAY + V_B_BORDER;
+	localparam END_V_RETRACE   = V_DISPLAY + V_B_BORDER + V_RETRACE - 1;
 	
+	// mod-4 counter to generate 25 MHz pixel tick
+	reg [1:0] pixel_reg;
+	wire [1:0] pixel_next;
+	wire pixel_tick;
+	
+	always @(posedge clk, posedge reset)
+		if(reset)
+		  pixel_reg <= 0;
+		else
+		  pixel_reg <= pixel_next;
+	
+	assign pixel_next = pixel_reg + 1; // increment pixel_reg 
+	
+	assign pixel_tick = (pixel_reg == 0); // assert tick 1/4 of the time
+    
+    // registers for current pixel location
+	reg [9:0] h_count_reg, h_count_next, v_count_reg, v_count_next;
+	
+	// register for vsync and hsync signal states
+	reg vsync_reg, hsync_reg;
+	wire vsync_next, hsync_next;
 
-	always@(posedge pixel_clk)begin
-		if(hcounter == HMAX) begin
-			if(vcounter == VMAX) vcounter <= 0;
-			else vcounter <= vcounter + 1'b1; 
+    // Set next-state to current-state
+	always @(posedge clk) begin
+		if(reset) begin
+            v_count_reg = 0;
+            h_count_reg = 0;
+            vsync_reg   = 0;
+            hsync_reg   = 0;
+		end
+		else begin
+            v_count_reg = v_count_next;
+            h_count_reg = h_count_next;
+            vsync_reg   = vsync_next;
+            hsync_reg   = hsync_next;
 		end
 	end
 	
-	always@(posedge pixel_clk)begin
-		if(hcounter >= HFP && hcounter < HSP) HS <= SPP;
-		else HS <= ~SPP; 
-	end
-	
-	always@(posedge pixel_clk)begin
-		if(vcounter >= VFP && vcounter < VSP) VS <= SPP;
-		else VS <= ~SPP; 
-	end
-	
-	
-	
-	assign video_enable = (hcounter < HLINES && vcounter < VLINES) ? 1'b1 : 1'b0;
+	// next-state logic of hsync & vsync counters
+	always @(*) begin
+		h_count_next = pixel_tick ? 
+		               h_count_reg == H_MAX ? 0 : h_count_reg + 1
+			         : h_count_reg;
+		
+		v_count_next = pixel_tick && h_count_reg == H_MAX ? 
+		               (v_count_reg == V_MAX ? 0 : v_count_reg + 1) 
+			         : v_count_reg;
+    end
+    
+    // hsync and vsync are active low signals
+    // hsync signal asserted during horizontal retrace
+    assign hsync_next = (h_count_reg >= START_H_RETRACE) && (h_count_reg <= END_H_RETRACE);
 
+    // vsync signal asserted during vertical retrace
+    assign vsync_next = (v_count_reg >= START_V_RETRACE) && (v_count_reg <= END_V_RETRACE);
+
+    // video only on when pixels are in both horizontal and vertical display region
+    assign video_on = (h_count_reg < H_DISPLAY) && (v_count_reg < V_DISPLAY);
+
+    // output signals
+    assign hsync  = hsync_reg;
+    assign vsync  = vsync_reg;
+    assign x      = h_count_reg;
+    assign y      = v_count_reg;
+    assign p_tick = pixel_tick;
 endmodule

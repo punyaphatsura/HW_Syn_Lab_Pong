@@ -41,7 +41,7 @@ module uart(
     always @(posedge baud) begin
         if (en) en = 0;
         if (~last_rec & received) begin
-            data_in = data_out + 8'h01;
+            data_in = data_out;
             if (data_in == 8'h77 || data_in == 8'h73
             || data_in == 8'h38 || data_in == 8'h35) en = 1;
         end
