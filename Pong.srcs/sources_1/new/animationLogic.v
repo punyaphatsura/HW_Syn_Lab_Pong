@@ -31,9 +31,11 @@ module animationLogic(
     input player2Up,
     input player2Down,
     input stopBall,
-    output wire [2:0] rgb,
-    output wire scorePlayer1,
-    output wire scorePlayer2
+    input [7:0] totalscorePlayer1,
+    input [7:0] totalscorePlayer2,
+    output [2:0] rgb,
+    output scorePlayer1,
+    output scorePlayer2
 );
 
     reg scoreCheckerPlayer1;
@@ -59,12 +61,24 @@ module animationLogic(
     wire displayLeftPaddle; // to display player 1's paddle in vga
     wire[2:0] rgbLeftPaddle; // player 1's paddle color
 
+    // Player 1' score
+    wire displayPlayer1Score; // to display player 1's score
+    wire player1FirstDigit; // output player 1's first digit from convertor
+    wire player1SecondDigit; // output player 1's second digit from convertor
+    wire[2:0] rgbPlayer1Score; // player 1's score color
+
     // Player 2
     integer rightPaddleY; // the distance between paddle and top side of screen
     integer rightPaddleNextY; // the distance between paddle and top side of screen
     parameter rightPaddleX = 610; // the distance between bar and left side of screen
     wire displayRightPaddle; // to display player 2's paddle in vga
     wire[2:0] rgbRightPaddle; // player 2's paddle color
+
+    // Player 2' score
+    wire displayPlayer2Score; // to display player 1's score
+    wire player2FirstDigit; // output player 1's first digit from convertor
+    wire player2SecondDigit; // output player 1's second digit from convertor
+    wire[2:0] rgbPlayer2Score; // player 1's score color
 
     // Ball
     integer ballX; // the distance between the ball and left side of the screen
@@ -85,7 +99,7 @@ module animationLogic(
     wire refreshRate;
 
     // Mux to display
-    wire[3:0] outputMux;
+    wire[5:0] outputMux;
 
     // RGB buffer
     reg[2:0] rgbReg; 
@@ -295,20 +309,36 @@ module animationLogic(
     assign displayBall = (x - ballX) * (x - ballX) + (y - ballY) * (y - ballY) <= ballRadius * ballRadius ? 1'b1 : 1'b0; 
     assign rgbBall = 3'b111; // color of ball: white
 
+    // display player 1 score on the screen
+    assign displayPlayer1Score = x >= 204 & x <= 220 & y >= 80 & y <= 88; 
+    numberToPixel player1FirstDigitConvertor(totalscorePlayer1[7:4], y - 80, x - 204, player1FirstDigit);
+    numberToPixel player1SecondDigitConvertor(totalscorePlayer1[3:0], y - 80, x - 212, player1SecondDigit);
+    assign rgbPlayer1Score = x >= 212 ? player1SecondDigit ? 3'b111 : 3'b000
+                                    : player1FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
+
+    // display player 2 score on the screen
+    assign displayPlayer2Score = x >= 420 & x <= 436 & y >= 80 & y <= 88; 
+    numberToPixel player2FirstDigitConvertor(totalscorePlayer2[7:4], y - 80, x - 420, player2FirstDigit);
+    numberToPixel player2SecondDigitConvertor(totalscorePlayer2[3:0], y - 80, x - 428, player2SecondDigit);
+    assign rgbPlayer1Score = x >= 428 ? player2SecondDigit ? 3'b111 : 3'b000
+                                    : player2FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
+
     always @(posedge clk) begin 
         rgbReg <= rgbNext;   
     end
 
     // mux
-    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall}; 
+    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score}; 
 
     // assign rgbNext from outputMux.
-    assign rgbNext = outputMux === 4'b1000 ? 3'b000: 
-                    outputMux === 4'b1100 ? rgbLeftPaddle: 
-                    outputMux === 4'b1101 ? rgbLeftPaddle: 
-                    outputMux === 4'b1010 ? rgbRightPaddle: 
-                    outputMux === 4'b1011 ? rgbRightPaddle: 
-                    outputMux === 4'b1001 ? rgbBall:
+    assign rgbNext = outputMux === 6'b100000 ? 3'b000: 
+                    outputMux === 6'b110000 ? rgbLeftPaddle: 
+                    outputMux === 6'b110100 ? rgbLeftPaddle: 
+                    outputMux === 6'b101000 ? rgbRightPaddle: 
+                    outputMux === 6'b101100 ? rgbRightPaddle: 
+                    outputMux === 6'b100100 ? rgbBall:
+                    outputMux === 6'b100101 ? rgbBall:
+                    outputMux === 6'b100110 ? rgbBall:
                     3'b000;
  
     // output part
