@@ -37,69 +37,60 @@ module main(
     
     reg [7:0] player1Score;
     reg [7:0] player2Score;
-    reg videoOn;
-    reg stopBall;
+
     wire [9:0] x,y;
-    wire player1Up,player1Down,player2Up,player2Down;
-    wire [3:0] ps11,ps12,ps21,ps22;
+    wire player1Up, player1Down, player2Up, player2Down;
+    wire [3:0] ps11, ps12, ps21, ps22;
     wire [3:0] ws85;
     wire [19:0] clk_div;
     wire [2:0] rgb_out;
-    wire scorePlayer1;
-    wire scorePlayer2;
+    wire scorePlayer1Count;
+    wire scorePlayer2Count;
     
-    assign led = an;
     assign clk_div[0] = clk;
-    assign ps11 = player1Score[7:4];
-    assign ps12 = player1Score[3:0];
-    assign ps21 = player2Score[7:4];
-    assign ps22 = player2Score[3:0];
-    assign {player1Up,player1Down,player2Up,player2Down} = ws85;
-    assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2]};
+    assign ps11 = player1Score[7:4]; // player1 score 1st digit
+    assign ps12 = player1Score[3:0]; // player1 score 2nd digit
+    assign ps21 = player2Score[7:4]; // player2 score 1st digit
+    assign ps22 = player2Score[3:0]; // player2 score 2nd digit
+    assign {player1Up,player1Down,player2Up,player2Down} = ws85; // assign ws85 to player1Up, player1Down, player2Up, player2Down
+    assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
     assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1]};
     assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0]};
     
-    generate for(genvar i = 0;i<19;i = i+1) begin
+    generate for(genvar i = 0;i<19;i = i+1) begin // divine clock by 2^19 for 7 segment display
         clock_divider div1(clk_div[i],clk_div[i+1]);
     end endgenerate
     
-//    assign clockdiv = clk_div[19];
-    
-    uart keyboardInput(clk, RsRx, RsTx, ws85);
-    animationLogic animeLogic(
-        clk,// input
-        btnU,// reset // input
-        x,// input
-        y,// input
-        1, //videoOn // input
-        player1Up,// input
-        player1Down,// input
-        player2Up,// input
-        player2Down,// input
-        btnD, // stopBall // input
-        player1Score,
-        player2Score,
-        rgb_out,
-        scorePlayer1,
-        scorePlayer2
+    uart keyboardInput(clk, RsRx, RsTx, ws85); // keyboard input
+    animationLogic animeLogic( // main game logic and animation logic
+        clk,
+        btnU,// reset
+        x,// position x
+        y,// position y
+        1, //videoOn show video where the value is 1
+        player1Up,// player1 up control
+        player1Down,// player1 down control
+        player2Up,// player2 up control
+        player2Down,// player2 up control
+        btnD, // throwBall let ball move to start/continue game
+        player1Score, // player1 score
+        player2Score, // player2 score
+        rgb_out, // rgb output of the position x y
+        scorePlayer1Count, // Adding score of player1
+        scorePlayer2Count // Adding score of player2
     );
     vga vga_render(.clk(clk), .reset(reset), .hsync(Hsync), .vsync(Vsync),
-                                .video_on(video_on), .p_tick(), .x(x), .y(y));
-    
-    initial begin
-        player1Score = {ps11,ps12};
-        player2Score = {ps21,ps22};
-    end
+                                .video_on(video_on), .p_tick(), .x(x), .y(y)); // vga render
     
     always @(posedge clk)
     begin
-        if(btnU == 1) begin
-            player1Score = 8'd0;
+        if(btnU == 1) begin 
+            player1Score = 8'd0; // reset score
         end
-        else if (scorePlayer1 == 1) begin
+        else if (scorePlayer1Count == 1) begin // if player1 score count is 1 then add score
             if(player1Score[3:0] < 4'd9) player1Score[3:0] = player1Score[3:0] + 1;
             else begin
-                if(player1Score[7:4] < 4'd9)
+                if(player1Score[7:4] < 4'd9) // If player1 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
                 begin
                     player1Score[3:0] = 4'd0;
                     player1Score[7:4] = player1Score[7:4] + 1;
@@ -111,12 +102,12 @@ module main(
     always @(posedge clk)
     begin
         if(btnU == 1) begin
-            player2Score = 8'd0;
+            player2Score = 8'd0; // reset score
         end
-        else if (scorePlayer2 == 1) begin
+        else if (scorePlayer2Count == 1) begin // if player2 score count is 1 then add score
             if(player2Score[3:0] < 4'd9) player2Score[3:0] = player2Score[3:0] + 1;
             else begin
-                if(player2Score[7:4] < 4'd9)
+                if(player2Score[7:4] < 4'd9) // If player2 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
                 begin
                     player2Score[3:0] = 4'd0;
                     player2Score[7:4] = player2Score[7:4] + 1;
@@ -125,5 +116,5 @@ module main(
         end
     end
     
-    seven_segment_tdm segment_controller(clk_div[19],ps11,ps12,ps21,ps22,seg,an,1);
+    seven_segment_tdm segment_controller(clk_div[19],ps11,ps12,ps21,ps22,seg,an,1); // show score on 7 segment display
 endmodule
