@@ -23,27 +23,29 @@ module uart(
     input clk,
     input RsRx,
     output RsTx,
-    output [3:0] ws85
+    output [4:0] ws85l
     );
     
     reg en, last_rec;
     reg [7:0] data_in;
-    reg [3:0] movement = 4'b0000;
+    reg [3:0] movement = 4'b0000; // 1st player up/down, 2nd player up/down
+    reg l = 1'b0; // l key
+    reg lState = 1'b0; // l key state
     wire [7:0] data_out;
     wire sent, received, baud;
     
-    assign ws85 = movement;
+    assign ws85l = {movement,l}; // assign movement and l to ws85l
     
-    baudrate_gen baudrate_gen(clk, baud);
-    uart_rx receiver(baud, RsRx, received, data_out);
+    baudrate_gen baudrate_gen(clk, baud); // generate baud rate
+    uart_rx receiver(baud, RsRx, received, data_out); // encode data to 8 bits
     uart_tx transmitter(baud, data_in, en, sent, RsTx); // check if input is valid
     
     always @(posedge baud) begin
         if (en) en = 0;
         if (~last_rec & received) begin
             data_in = data_out;
-            if (data_in == 8'h77 || data_in == 8'h73
-            || data_in == 8'h38 || data_in == 8'h35) en = 1; // recieve only w,s,8,5 keys
+            if (data_in == 8'h77 || data_in == 8'h73 // w,s,8,5,l keys
+            || data_in == 8'h38 || data_in == 8'h35 || data_in == 8'h6C) en = 1; // recieve only w,s,8,5,l keys
         end
         last_rec = received;
     end
@@ -56,6 +58,19 @@ module uart(
                 8'h38: movement[1:0] = 2'b10; // 8 2nd player up
                 8'h35: movement[1:0] = 2'b01; // 5 2nd player down
             endcase
+        end
+    end
+    
+    always @(posedge baud) begin
+        if(sent) begin // l key to throw ball
+            if(data_in == 8'h6C && lState == 1'b0) begin // l key pressed
+                l = 1'b1;
+                lState = 1'b1;
+            end
+            else if(data_in == 8'h6C && lState == 1'b1) begin // allow only 1 l key press (single pulse)
+                l = 1'b0;
+            end
+            else lState = 1'b0; // l key released
         end
     end
     
