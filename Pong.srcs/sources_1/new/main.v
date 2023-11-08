@@ -39,20 +39,20 @@ module main(
     reg [7:0] player2Score;
 
     wire [9:0] x,y;
-    wire player1Up, player1Down, player2Up, player2Down;
+    wire player1Up, player1Down, player2Up, player2Down, throwBall;
     wire [3:0] ps11, ps12, ps21, ps22;
-    wire [3:0] ws85;
+    wire [4:0] ws85l;
     wire [19:0] clk_div;
     wire [2:0] rgb_out;
     wire scorePlayer1Count;
     wire scorePlayer2Count;
     
-    assign clk_div[0] = clk;
+    assign clk_div[0] = clk; // assign clk to clk_div[0]
     assign ps11 = player1Score[7:4]; // player1 score 1st digit
     assign ps12 = player1Score[3:0]; // player1 score 2nd digit
     assign ps21 = player2Score[7:4]; // player2 score 1st digit
     assign ps22 = player2Score[3:0]; // player2 score 2nd digit
-    assign {player1Up,player1Down,player2Up,player2Down} = ws85; // assign ws85 to player1Up, player1Down, player2Up, player2Down
+    assign {player1Up,player1Down,player2Up,player2Down,throwBall} = ws85l; // assign ws85l to player1Up, player1Down, player2Up, player2Down, throwBall
     assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
     assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1]};
     assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0]};
@@ -61,7 +61,7 @@ module main(
         clock_divider div1(clk_div[i],clk_div[i+1]);
     end endgenerate
     
-    uart keyboardInput(clk, RsRx, RsTx, ws85); // keyboard input
+    uart keyboardInput(clk, RsRx, RsTx, ws85l); // keyboard input
     animationLogic animeLogic( // main game logic and animation logic
         clk,
         btnU,// reset
@@ -72,7 +72,7 @@ module main(
         player1Down,// player1 down control
         player2Up,// player2 up control
         player2Down,// player2 up control
-        btnD, // throwBall let ball move to start/continue game
+        {throwBall || btnD}, // throwBall ball game after player get score (afk handle)
         player1Score, // player1 score
         player2Score, // player2 score
         rgb_out, // rgb output of the position x y
@@ -85,9 +85,10 @@ module main(
     always @(posedge clk)
     begin
         if(btnU == 1) begin 
-            player1Score = 8'd0; // reset score
+            player1Score = 8'd0; // reset score player1
+            player2Score = 8'd0; // reset score player2
         end
-        else if (scorePlayer1Count == 1) begin // if player1 score count is 1 then add score
+        else if (scorePlayer1Count == 1) begin // if player1 score count is 1 then add player1 score
             if(player1Score[3:0] < 4'd9) player1Score[3:0] = player1Score[3:0] + 1;
             else begin
                 if(player1Score[7:4] < 4'd9) // If player1 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
@@ -97,14 +98,7 @@ module main(
                 end
             end
         end
-    end
-
-    always @(posedge clk)
-    begin
-        if(btnU == 1) begin
-            player2Score = 8'd0; // reset score
-        end
-        else if (scorePlayer2Count == 1) begin // if player2 score count is 1 then add score
+        else if (scorePlayer2Count == 1) begin // if player2 score count is 1 then add player2 score
             if(player2Score[3:0] < 4'd9) player2Score[3:0] = player2Score[3:0] + 1;
             else begin
                 if(player2Score[7:4] < 4'd9) // If player2 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
