@@ -7,7 +7,7 @@
 
 ## How to play
 
-- Recommend a keyboard with a Numpad for playing
+- Recommend a keyboard with a Numpad for playing (especially the Keychron Q6 Custom Mechanical Keyboard with blue switches //jk)
 - `W,S`: for moving the left paddle up/down respectively (player1)
 - `8,5`: for moving the right paddle up/down respectively (player2)
 - `L`: for throwing the ball after any player gets scored or starts the game (last pressed key must not be `L`)
