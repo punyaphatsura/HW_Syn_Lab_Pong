@@ -6,6 +6,7 @@
 - [Thanat Wongsamut](https://github.com/ThanatWonsamut)
 
 ## How to play
+
 - Recommend a keyboard with a Numpad for playing
 - `W,S`: for moving the left paddle up/down respectively (player1)
 - `8,5`: for moving the right paddle up/down respectively (player2)
