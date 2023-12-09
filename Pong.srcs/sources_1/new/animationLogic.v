@@ -91,12 +91,16 @@ module animationLogic(
     integer velocityYNext; // next vertical velocity of the ball
     wire displayBall; // to display ball in vga
     wire[2:0] rgbBall; // ball color
+    reg [2:0] ballColor [0:5];
+    integer ballColorState = 0;
+    integer ballColorNextState;
 
     // Refresh the display
     reg [19:0] refreshReg;
     wire [19:0] refreshNext;
     parameter refreshConstant = 830000;
     wire refreshRate;
+    
 
     // Mux to display
     wire[5:0] outputMux;
@@ -121,6 +125,12 @@ module animationLogic(
 
         rightPaddleY = 380;
         rightPaddleNextY = 380;
+        
+        ballColor[0] = 3'b111;
+        ballColor[1] = 3'b110;
+        ballColor[2] = 3'b101;
+        ballColor[3] = 3'b010;
+        ballColor[4] = 3'b011;
     end
 
     // Refreshing
@@ -142,6 +152,7 @@ module animationLogic(
             rightPaddleY <= 380;
             velocityXReg <= 0;
             velocityYReg <= 0;
+            ballColorState <= 0;
         end
         else begin
             velocityXReg <= velocityXNext; // assigns horizontal velocity
@@ -167,6 +178,7 @@ module animationLogic(
 
             ballX <= ballNextX; // assigns the next value of the ball's location from the left side of the screen to it's location.
             ballY <= ballNextY; // assigns the next value of the ball's location from the top side of the screen to it's location.  
+            ballColorState <= ballColorNextState; 
             leftPaddleY <= leftPaddleNextY; // assigns the next value of the left paddle's location from the top side of the screen to it's location.
             rightPaddleY <= rightPaddleNextY; // assigns the next value of the right paddle's location from the top side of the screen to it's location.
             scorer <= scorerNext;
@@ -222,6 +234,8 @@ module animationLogic(
     always @(refreshRate or ballX or ballY or velocityXReg or velocityYReg) begin
         ballNextX <= ballX;
         ballNextY <= ballY;
+        
+        ballColorNextState <= ballColorState;
 
         velocityXNext <= velocityXReg;
         velocityYNext <= velocityYReg;
@@ -236,21 +250,25 @@ module animationLogic(
             if (ballY <= leftPaddleY & ballY >= leftPaddleY - paddleHeight & ballX <= leftPaddleX + paddleWidth + ballRadius & ballX > leftPaddleX + ballRadius) begin
                 // if ball hits the left paddle
                 velocityXNext <= velocityX; // set the direction of horizontal velocity positive
+                if(velocityXReg < 0)ballColorNextState <= (ballColorState + 1)%5;
             end
 
             if (ballY <= rightPaddleY & ballY >= rightPaddleY - paddleHeight & ballX >= rightPaddleX - ballRadius & ballX < rightPaddleX + paddleWidth - ballRadius) begin
                 // if ball hits the right paddle
                 velocityXNext <= -velocityX; // set the direction of horizontal velocity negative
+                if(velocityXReg > 0)ballColorNextState <= (ballColorState + 1)%5;
             end
 
-            if (ballY < 9) begin
+            if (ballY < 25) begin
                 // if ball hits the top side of the screen
                 velocityYNext <= velocityY; // set the direction of vertical velocity positive
+                if(velocityYReg < 0)ballColorNextState <= (ballColorState + 1)%5;
             end
 
-            if (ballY > 471) begin
+            if (ballY > 487) begin
                 // if ball hits the top side of the screen
                 velocityYNext <= -velocityY; // set the direction of vertical velocity negative
+                if(velocityYReg > 0)ballColorNextState <= (ballColorState + 1)%5;
             end
             
             ballNextX <= ballX + velocityXReg; // move the ball's horizontal location   
@@ -309,7 +327,7 @@ module animationLogic(
 
     // display ball object on the screen
     assign displayBall = (x - ballX) * (x - ballX) + (y - ballY) * (y - ballY) <= ballRadius * ballRadius ? 1'b1 : 1'b0; 
-    assign rgbBall = 3'b111; // color of ball: white
+    assign rgbBall = ballColor[ballColorState]; // color of ball: [white,yellow,magenta,green,cyan]
 
     // display player 1 score on the screen
     assign displayPlayer1Score = x >= 204 & x < 220 & y >= 80 & y < 88; 
