@@ -35,8 +35,8 @@ module main(
     output wire Vsync
     );
     
-    reg [7:0] player1Score;
-    reg [7:0] player2Score;
+    wire [7:0] player1Score;
+    wire [7:0] player2Score;
 
     wire [9:0] x,y;
     wire player1Up, player1Down, player2Up, player2Down, throwBall;
@@ -53,9 +53,9 @@ module main(
     assign ps21 = player2Score[7:4]; // player2 score 1st digit
     assign ps22 = player2Score[3:0]; // player2 score 2nd digit
     assign {player1Up,player1Down,player2Up,player2Down,throwBall} = ws85l; // assign ws85l to player1Up, player1Down, player2Up, player2Down, throwBall
-    assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
-    assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1]};
-    assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0]};
+    assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2],rgb_out[2]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
+    assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1],rgb_out[1]};
+    assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0],rgb_out[0]};
     
     generate for(genvar i = 0;i<19;i = i+1) begin // divine clock by 2^19 for 7 segment display
         clock_divider div1(clk_div[i],clk_div[i+1]);
@@ -82,33 +82,14 @@ module main(
     vga vga_render(.clk(clk), .reset(reset), .hsync(Hsync), .vsync(Vsync),
                                 .video_on(video_on), .p_tick(), .x(x), .y(y)); // vga render
     
-    always @(posedge clk)
-    begin
-        if(btnU == 1) begin 
-            player1Score = 8'd0; // reset score player1
-            player2Score = 8'd0; // reset score player2
-        end
-        else if (scorePlayer1Count == 1) begin // if player1 score count is 1 then add player1 score
-            if(player1Score[3:0] < 4'd9) player1Score[3:0] = player1Score[3:0] + 1;
-            else begin
-                if(player1Score[7:4] < 4'd9) // If player1 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
-                begin
-                    player1Score[3:0] = 4'd0;
-                    player1Score[7:4] = player1Score[7:4] + 1;
-                end
-            end
-        end
-        else if (scorePlayer2Count == 1) begin // if player2 score count is 1 then add player2 score
-            if(player2Score[3:0] < 4'd9) player2Score[3:0] = player2Score[3:0] + 1;
-            else begin
-                if(player2Score[7:4] < 4'd9) // If player2 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
-                begin
-                    player2Score[3:0] = 4'd0;
-                    player2Score[7:4] = player2Score[7:4] + 1;
-                end
-            end
-        end
-    end
+    scoreLogic scoreLogicModule (
+    .clk(clk),
+    .reset(btnU),
+    .scorePlayer1Count(scorePlayer1Count),
+    .scorePlayer2Count(scorePlayer2Count),
+    .player1Score(player1Score),
+    .player2Score(player2Score)
+);
     
     seven_segment_tdm segment_controller(clk_div[19],ps11,ps12,ps21,ps22,seg,an,1); // show score on 7 segment display
 endmodule
