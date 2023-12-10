@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Punyaphat
 // 
 // Create Date: 10/31/2021 09:59:35 PM
 // Design Name: 
@@ -44,8 +44,12 @@ module inputLogic(
         if (en) en = 0;
         if (~last_rec & received) begin
             data_in = data_out;
-            if (data_in == 8'h77 || data_in == 8'h73 // w,s,8,5,l keys
-            || data_in == 8'h38 || data_in == 8'h35 || data_in == 8'h6C) en = 1; // recieve only w,s,8,5,l keys
+            if (data_in == 8'h77 // w
+            || data_in == 8'h73 // s
+            || data_in == 8'h38 // 8
+            || data_in == 8'h35 // 5
+            || data_in == 8'h6C // l
+            ) en = 1; // recieve only w,s,8,5,l keys
         end
         last_rec = received;
     end

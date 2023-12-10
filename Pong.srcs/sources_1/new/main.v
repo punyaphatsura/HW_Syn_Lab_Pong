@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Punyaphat
 // 
 // Create Date: 11/06/2023 09:23:51 PM
 // Design Name: 
@@ -61,7 +61,13 @@ module main(
         clock_divider div1(clk_div[i],clk_div[i+1]);
     end endgenerate
     
-    inputLogic keyboardInput(clk, RsRx, RsTx, ws85l); // keyboard input
+    inputLogic keyboardInput(
+        clk,
+        RsRx,
+        RsTx,
+        ws85l
+    ); // keyboard input
+
     animationLogic animeLogic( // main game logic and animation logic
         clk,
         btnU,// reset
@@ -79,17 +85,25 @@ module main(
         scorePlayer1Count, // Adding score of player1
         scorePlayer2Count // Adding score of player2
     );
-    vga vga_render(.clk(clk), .reset(reset), .hsync(Hsync), .vsync(Vsync),
-                                .video_on(video_on), .p_tick(), .x(x), .y(y)); // vga render
+
+    vga vga_render(.clk(clk),
+        .reset(reset),
+        .hsync(Hsync),
+        .vsync(Vsync),
+        .video_on(video_on),
+        .p_tick(),
+        .x(x),
+        .y(y)
+    ); // vga render
     
     scoreLogic scoreLogicModule (
-    .clk(clk),
-    .reset(btnU),
-    .scorePlayer1Count(scorePlayer1Count),
-    .scorePlayer2Count(scorePlayer2Count),
-    .player1Score(player1Score),
-    .player2Score(player2Score)
-);
+        .clk(clk),
+        .reset(btnU), // reset
+        .scorePlayer1Count(scorePlayer1Count), // Adding score of player1
+        .scorePlayer2Count(scorePlayer2Count), // Adding score of player2
+        .player1Score(player1Score), // player1 score output
+        .player2Score(player2Score) // player2 score output
+    );
     
     seven_segment_tdm segment_controller(clk_div[19],ps11,ps12,ps21,ps22,seg,an,1); // show score on 7 segment display
 endmodule

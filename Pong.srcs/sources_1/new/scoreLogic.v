@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Punyaphat
 // 
 // Create Date: 12/09/2023 09:33:43 PM
 // Design Name: 
