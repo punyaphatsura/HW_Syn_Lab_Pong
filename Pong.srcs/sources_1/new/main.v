@@ -61,7 +61,7 @@ module main(
         clock_divider div1(clk_div[i],clk_div[i+1]);
     end endgenerate
     
-    uart keyboardInput(clk, RsRx, RsTx, ws85l); // keyboard input
+    inputLogic keyboardInput(clk, RsRx, RsTx, ws85l); // keyboard input
     animationLogic animeLogic( // main game logic and animation logic
         clk,
         btnU,// reset
