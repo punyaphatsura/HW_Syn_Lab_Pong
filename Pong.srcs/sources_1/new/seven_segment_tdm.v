@@ -21,7 +21,7 @@
 
 
 module seven_segment_tdm (
-    input clk,
+    input clk_src,
     input [3:0] num0,num1,num2,num3,
     output [6:0] seg_output,
     output [3:0] an,
@@ -31,14 +31,19 @@ module seven_segment_tdm (
 reg [3:0] hexIn;
 reg [1:0] tdm_counter = 2'b00;
 reg [3:0] dispEn;
-
+wire clk;
 
 wire [6:0] segments;
+wire [19:0] clk_div;
 
 assign seg_output = segments;
 assign dot = 1;
 assign an = ~dispEn;
-
+assign clk_div[0] = clk_src; // assign clk to clk_div[0]
+generate for(genvar i = 0;i<19;i = i+1) begin // divine clock by 2^19 for 7 segment display
+    clock_divider div1(clk_div[i],clk_div[i+1]);
+end endgenerate
+assign clk = clk_div[19];
 // Instantiate the Hex to 7-Segment Encoder
 hex_to_7seg encoder(hexIn,segments);
 
