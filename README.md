@@ -12,6 +12,6 @@
 - `8,5`: for moving the right paddle up/down respectively (player2)
 - `L`: for throwing the ball after any player gets scored or starts the game (last pressed key must not be `L`)
 - `btnD`: like `L` but can throw without exception
-- `btnU`: reset the game
+- `r`: reset the game
 
 ![](https://komarev.com/ghpvc/?username=hw-syn-lab-pong&style=for-the-badge&color=lightgrey&label=REPOSITORY+VIEWS)
