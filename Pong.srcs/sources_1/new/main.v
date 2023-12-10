@@ -53,14 +53,14 @@ module main(
     assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1],rgb_out[1]};
     assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0],rgb_out[0]};
     
-    inputLogic keyboardInput(
+    inputLogic inputLogicModule(
         clk,
         RsRx,
         RsTx,
         ws85lr
     ); // keyboard input
 
-    animationLogic animeLogic( // main game logic and animation logic
+    animationLogic animationLogicModule( // main game logic and animation logic
         clk,
         reset,// reset
         x,// position x
@@ -78,7 +78,7 @@ module main(
         scorePlayer2Count // Adding score of player2
     );
 
-    vga vga_render(
+    vga vgaRenderModule(
         .clk(clk),
         .reset(0),
         .hsync(Hsync),
@@ -98,5 +98,5 @@ module main(
         .player2Score(player2Score) // player2 score output
     );
     
-    seven_segment_tdm segment_controller(clk,ps11,ps12,ps21,ps22,seg,an,1); // show score on 7 segment display
+    seven_segment_tdm sevenSegmentControlModule(clk,ps11,ps12,ps21,ps22,seg,an,1); // show score on 7 segment display
 endmodule
