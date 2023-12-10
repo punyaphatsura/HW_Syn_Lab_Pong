@@ -70,7 +70,7 @@ module main(
         player1Down,// player1 down control
         player2Up,// player2 up control
         player2Down,// player2 up control
-        {btnD || ws85lr[4]}, // throwBall ball game after player get score (afk handle)
+        {btnD || throwBall}, // throwBall ball game after player get score (afk handle)
         player1Score, // player1 score
         player2Score, // player2 score
         rgb_out, // rgb output of the position x y
