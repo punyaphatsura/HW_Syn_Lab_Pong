@@ -3,7 +3,7 @@
 ## Collaborators
 
 - [Punyaphat Surakiatkamjorn](https://github.com/punyaphatsura)
-- [Thanat Wongsamut](https://github.com/ThanatWonsamut)
+- [Thanat Wongsamut](https://github.com/ThanatWongsamut)
 
 ## How to play
 
